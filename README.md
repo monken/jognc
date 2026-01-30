@@ -1,73 +1,69 @@
-# React + TypeScript + Vite
+# jogNC
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, lightweight web interface for controlling GRBL-based CNC machines (specifically targeting FluidNC) via WebSocket. Built with [Preact](https://preactjs.com/), [Vite](https://vitejs.dev/), and [Tailwind CSS](https://tailwindcss.com/).
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Real-time Status**: View machine coordinates (mPos), spindle speed, feed rate, and current state (Idle, Run, Alarm, etc.).
+- **Jogging Controls**: Manual machine movement functionality.
+- **State Management**: Visual feedback for machine states (Alarm, Hold, Jog, Run) with color-coded indicators.
+- **WebSocket Communication**: Direct, low-latency connection to the CNC controller.
+- **Mobile Friendly**: Responsive design suitable for tablets and touchscreens next to your machine.
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Framework**: Preact (via `@preact/preset-vite`)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v4
+- **Build Tool**: Vite
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Prerequisites
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Node.js (Latest LTS recommended)
+- A GRBL/FluidNC controller accessible via network
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Installation
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd jog
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+### Development
+
+Start the development server:
+
+```bash
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+By default, in development mode, the application attempts to connect to `http://fluidnc.local/`. You can modify this in `src/contexts/grbl/provider.tsx` if your controller is at a different address.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Building for Production
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Build the application for deployment:
+
+```bash
+npm run build
 ```
+
+The output will be in the `dist/` directory. These files can be uploaded to the SPIFFS/LittleFS of an ESP32 running FluidNC or served via a static web server that proxies WebSocket connections to the controller.
+
+## Project Structure
+
+- `src/components`: UI components (Jog controls, Alarm, Coordinates, etc.)
+- `src/contexts`: Global state management (GRBL connection and state)
+- `src/lib`: Utilities for WebSocket communication and GRBL message parsing
+- `src/assets`: Static assets
+
+## License
+
+[MIT](LICENSE)
