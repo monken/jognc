@@ -153,6 +153,7 @@ export class Connection extends EventTarget {
       if (err) throw err;
       else return;
     }
+    if (this.state === WebSocketState.RECONNECTING) return;
     this._ws?.close();
     this.updateState(WebSocketState.RECONNECTING);
     this._ws = undefined;

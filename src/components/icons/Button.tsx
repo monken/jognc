@@ -56,7 +56,7 @@ export function CaretButton({
   onPress,
   onRelease,
 }: {
-  icon?: React.ReactNode;
+  icon?: Preact.ComponentChildren;
   label?: string;
   rotation?: number;
   disabled?: boolean;
@@ -99,7 +99,7 @@ export function IconButton({
   label,
   disabled,
 }: {
-  icon: React.ReactNode;
+  icon: Preact.ComponentChildren;
   onClick?: () => void;
   label?: string;
   disabled?: boolean;
@@ -170,7 +170,8 @@ export function ToggleButton({
 
 interface Cycle {
   label: string;
-  icon: React.ReactNode;
+  icon: Preact.ComponentChildren;
+  value?: Record<string, number>;
 }
 
 export function CycleButton({ cycles, disabled }: { cycles: Cycle[]; disabled?: boolean }) {

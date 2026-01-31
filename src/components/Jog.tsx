@@ -1,37 +1,36 @@
 import { Home } from "./icons";
 import { CaretButton, CycleButton, IconButton, ToggleButton } from "./icons/Button";
 import { GrblState } from "../lib/grbl";
-import { useCallback, useState } from "preact/hooks";
+import { useCallback, useRef, useState } from "preact/hooks";
 
 const AXES = ["X", "Y", "Z", "A", "B", "C"];
 
 export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd: string) => Promise<void> }) {
-  const [jogging, setJogging] = useState([0, 0, 0, 0, 0, 0]);
+  const jogging = useRef([0, 0, 0, 0, 0, 0]);
   const [incremental, setIncremental] = useState(false);
 
   const stop = useCallback(() => {
-    setJogging([0, 0, 0, 0, 0, 0]);
+    jogging.current = [0, 0, 0, 0, 0, 0];
     send("\x85");
   }, [send]);
 
   const updateJogging = useCallback(
-    (axis: number, value: number) =>
-      setJogging((jogging) => {
-        const newJogging = [...jogging];
-        newJogging[axis] = jogging[axis] + value;
-        if (newJogging.every((v) => v === 0)) send("\x85");
-        else {
-          const limit = incremental ? 0.1 : 1000;
-          const axes = Object.fromEntries(newJogging.map((a, i) => [AXES[i], a]));
-          const cmd = `$J=G91 G21 ${Object.entries(axes)
-            .filter(([, v]) => v !== 0)
-            .map(([a, v]) => `${a}${v * limit}`)
-            .join(" ")} F1000`;
-          send("\x85");
-          send(cmd);
-        }
-        return newJogging;
-      }),
+    (axis: number, value: number) => {
+      const newJogging = [...jogging.current];
+      newJogging[axis] = jogging.current[axis] + value;
+      if (newJogging.every((v) => v === 0)) send("\x85");
+      else {
+        const limit = incremental ? 0.1 : 1000;
+        const axes = Object.fromEntries(newJogging.map((a, i) => [AXES[i], a]));
+        const cmd = `$J=G91 G21 ${Object.entries(axes)
+          .filter(([, v]) => v !== 0)
+          .map(([a, v]) => `${a}${v * limit}`)
+          .join(" ")} F1000`;
+        send("\x85");
+        send(cmd);
+      }
+      jogging.current = newJogging;
+    },
     [send, incremental],
   );
 
@@ -91,6 +90,7 @@ export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd:
           {
             label: "F3000",
             icon: "RAPID",
+            value: { F: 3000, X: 3, Y: 3, Z: 1},
           },
           {
             label: "F1500",
