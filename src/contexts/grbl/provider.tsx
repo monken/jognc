@@ -1,10 +1,14 @@
 import { GrblContext } from "./context";
 
 import { Connection, WebSocketState } from "../../lib/ws";
+import { MockWebSocket } from "../../lib/mock-ws";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { parseGrblMessage, type GrblStatus } from "../../lib/grbl";
 
 const DEV = import.meta.env.DEV;
+
+// Set this to true to force using Mock mode locally
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 export function GrblProvider(props: { children: preact.ComponentChildren }) {
   const [connectionState, setConnectionState] = useState<WebSocketState>(WebSocketState.CONNECTING);
@@ -16,7 +20,11 @@ export function GrblProvider(props: { children: preact.ComponentChildren }) {
     return { ...oldState, ...newState };
   }, []);
 
-  const ws = useMemo(() => new Connection({ url: DEV ? "http://fluidnc.local/" : "/", reportInterval: 80 }), []);
+  const ws = useMemo(() => new Connection({ 
+    url: DEV ? "http://fluidnc.local/" : "/", 
+    reportInterval: 80,
+    socketFactory: USE_MOCK ? (url) => new MockWebSocket(url) as unknown as WebSocket : undefined
+  }), []);
 
   useEffect(() => {
     const offState = ws.on<WebSocketState>("statechange", (msg) => setConnectionState(msg.value));

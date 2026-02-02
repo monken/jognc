@@ -24,12 +24,14 @@ interface ConnectionOptions {
   reconnect?: boolean;
   url: string | URL;
   reportInterval?: number;
+  socketFactory?: (url: string | URL) => WebSocket;
 }
 
 export class Connection extends EventTarget {
   private _reconnect;
   ws?: Promise<void>;
   _ws?: WebSocket;
+  private createSocket: (url: string | URL) => WebSocket;
   private queue: { message: string; resolve: () => void; reject: (reason?: any) => void }[] = [];
   url: string | URL;
   currentId?: string;
@@ -39,9 +41,10 @@ export class Connection extends EventTarget {
   waitForResponse?: { resolve: () => void; reject: (reason?: any) => void; message: string };
   private checkInterval?: ReturnType<typeof setInterval>;
 
-  constructor({ url, reconnect = true, reportInterval = 200 }: ConnectionOptions) {
+  constructor({ url, reconnect = true, reportInterval = 200, socketFactory }: ConnectionOptions) {
     super();
     this._reconnect = reconnect;
+    this.createSocket = socketFactory || ((url) => new WebSocket(url));
     this.url = url;
     this.reportInterval = reportInterval;
 
@@ -65,7 +68,7 @@ export class Connection extends EventTarget {
     }
     this.ws = new Promise<void>((resolve, reject) => {
       try {
-        const ws = new WebSocket(this.url);
+        const ws = this.createSocket(this.url);
         this.updateState(WebSocketState.CONNECTING);
         ws.addEventListener(
           "error",
