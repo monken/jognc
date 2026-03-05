@@ -1,46 +1,67 @@
-import { Home } from "./icons";
+import { Square } from "./icons";
 import { CaretButton, CycleButton, IconButton, ToggleButton } from "./icons/Button";
 import { GrblState } from "../lib/grbl";
 import { useCallback, useRef, useState } from "preact/hooks";
 
 const AXES = ["X", "Y", "Z", "A", "B", "C"];
 
+const FEED_SPEED_OPTIONS: { label: string; icon: string; value: Record<string, number> }[] = [
+  {
+    label: "F3000",
+    icon: "RAPID",
+    value: { F: 3000, X: 5, Y: 5, Z: 1 },
+  },
+  {
+    label: "F1500",
+    icon: "NORM",
+    value: { F: 1500, X: 2, Y: 2, Z: 0.4 },
+  },
+  {
+    label: "F500",
+    icon: "SLOW",
+    value: { F: 500, X: 1, Y: 1, Z: 0.2 },
+  },
+  {
+    label: "F100",
+    icon: "CREEP",
+    value: { F: 100, X: 0.5, Y: 0.5, Z: 0.1 },
+  },
+];
+
 export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd: string) => Promise<void> }) {
-  const jogging = useRef([0, 0, 0, 0, 0, 0]);
+  const joggingRef = useRef([0, 0, 0, 0, 0, 0]);
   const [incremental, setIncremental] = useState(false);
+  const [fsIdx, setFs] = useState(0);
+  const fs = FEED_SPEED_OPTIONS[fsIdx].value;
+
+  console.log({ fs });
 
   const stop = useCallback(() => {
-    jogging.current = [0, 0, 0, 0, 0, 0];
+    joggingRef.current = [0, 0, 0, 0, 0, 0];
     send("\x85");
   }, [send]);
 
   const updateJogging = useCallback(
     (axis: number, value: number) => {
-      const newJogging = [...jogging.current];
-      newJogging[axis] = jogging.current[axis] + value;
-      if (newJogging.every((v) => v === 0)) send("\x85");
-      else {
-        const limit = incremental ? 0.1 : 1000;
-        const axes = Object.fromEntries(newJogging.map((a, i) => [AXES[i], a]));
+      joggingRef.current[axis] = joggingRef.current[axis] + value;
+      if (joggingRef.current.every((v) => v === 0)) {
+        if (!incremental) send("\x85");
+      } else {
+        const axes = Object.fromEntries(joggingRef.current.map((a, i) => [AXES[i], a]));
         const cmd = `$J=G91 G21 ${Object.entries(axes)
           .filter(([, v]) => v !== 0)
-          .map(([a, v]) => `${a}${v * limit}`)
-          .join(" ")} F1000`;
+          .map(([a]) => `${a}${(incremental ? (fs[a] ?? 0) : 1000) * Math.sign(axes[a])}`)
+          .join(" ")} F${fs.F}`;
         send("\x85");
         send(cmd);
       }
-      jogging.current = newJogging;
     },
-    [send, incremental],
+    [send, incremental, fs],
   );
 
   return (
     <div className="bg-black grid grid-cols-3 gap-4 select-none touch-none">
-      {state === GrblState.JOG ? (
-        <IconButton label="Stop" icon="STop" onClick={stop} />
-      ) : (
-        <IconButton label="G28" icon={<Home />} onClick={() => send("G28")} disabled={state === undefined} />
-      )}
+      <CycleButton disabled={state === undefined} value={fsIdx} cycles={FEED_SPEED_OPTIONS} onChange={setFs} />
       <CaretButton
         label="Z+"
         rotation={270}
@@ -84,27 +105,11 @@ export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd:
         onPress={() => updateJogging(2, -1)}
         onRelease={() => updateJogging(2, 1)}
       />
-      <CycleButton
-        disabled={state === undefined}
-        cycles={[
-          {
-            label: "F3000",
-            icon: "RAPID",
-            value: { F: 3000, X: 3, Y: 3, Z: 1},
-          },
-          {
-            label: "F1500",
-            icon: "NORM",
-          },
-          {
-            label: "F500",
-            icon: "SLOW",
-          },
-          {
-            label: "F100",
-            icon: "CREEP",
-          },
-        ]}
+      <IconButton
+        label="Stop"
+        icon={<Square />}
+        onClick={stop}
+        disabled={state === undefined || state === GrblState.IDLE}
       />
     </div>
   );

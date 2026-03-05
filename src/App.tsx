@@ -22,13 +22,13 @@ function App() {
   return (
     <>
       <div className="flex-1 p-2 space-y-4">
-        <Coordinates position={mPos} spindle={spindle} feed={feed} />
         <GenericBox
           intent={state ? STATE_INTENT_MAP[state] || "secondary" : "secondary"}
           className={clsx("w-full font-mono text-2xl font-bold col-span-3 uppercase")}
         >
           {connectionState === WebSocketState.OPEN ? state : connectionState}
         </GenericBox>
+        <Coordinates position={mPos} spindle={spindle} feed={feed} />
 
         {(state === GrblState.ALARM || state === GrblState.HOLD_0) && <Alarm />}
         {(state === undefined || state === GrblState.JOG || state === GrblState.IDLE) && (

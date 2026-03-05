@@ -27,6 +27,7 @@ A modern, lightweight web interface for controlling GRBL-based CNC machines (spe
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone <repository-url>
    cd jog

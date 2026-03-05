@@ -9,23 +9,27 @@ This project is a React application using TypeScript and Vite. It is configured 
 - **src/**: Contains the main application code, including `App.tsx` and `main.tsx`.
 - **public/**: Static assets served by the application.
 - **eslint.config.js**: ESLint configuration file.
-- **tsconfig.*.json**: TypeScript configuration files for different environments.
+- **tsconfig.\*.json**: TypeScript configuration files for different environments.
 - **vite.config.ts**: Vite configuration file.
 
 ## Key Workflows
 
 ### Development
+
 - Use `npm run dev` to start the development server with HMR.
 - Modify files in `src/` to see live updates in the browser.
 
 ### Building
+
 - Use `npm run build` to create a production build in the `dist/` directory.
 
 ### Linting
+
 - Run `npm run lint` to check for linting errors.
 - Update `eslint.config.js` to customize linting rules.
 
 ### Testing
+
 - Add tests in the `src/` directory and configure a testing framework if needed.
 
 ## Project-Specific Conventions
@@ -42,11 +46,12 @@ This project is a React application using TypeScript and Vite. It is configured 
 ## Examples
 
 ### Adding a New Component
+
 1. Create a new file in `src/`, e.g., `src/MyComponent.tsx`.
 2. Use the following template:
 
 ```tsx
-import React from 'react';
+import React from "react";
 
 const MyComponent: React.FC = () => {
   return <div>My New Component</div>;
@@ -58,17 +63,15 @@ export default MyComponent;
 3. Import and use the component in `App.tsx`.
 
 ### Updating ESLint Rules
+
 1. Open `eslint.config.js`.
 2. Add or modify rules as needed. For example:
 
 ```js
 export default defineConfig([
   {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      'eslint:recommended',
-      'plugin:react/recommended',
-    ],
+    files: ["**/*.{ts,tsx}"],
+    extends: ["eslint:recommended", "plugin:react/recommended"],
   },
 ]);
 ```

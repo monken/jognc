@@ -8,12 +8,12 @@ export interface CaretProps {
   rotation?: number;
   /** Size of the icon in pixels or string (e.g. '24px', '2rem'). Default: 24 */
   size?: number | string;
-  /** Color of the icon stroke. Default: 'currentColor' */
-  color?: string;
-  /** Additional CSS classes */
+  /** Stroke color. Default: "currentColor" */
+  stroke?: string;
+  /** Fill color. Default: "currentColor" */
+  fill?: string;
+  /** Additional CSS classes to apply to the SVG element */
   className?: string;
-  /** Optional click handler */
-  onClick?: () => void;
 }
 
 /**
@@ -26,8 +26,8 @@ export function Caret({
   size = 24,
   stroke = "currentColor",
   fill = "currentColor",
-  className = "",
-}) {
+  className,
+}: CaretProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -36,9 +36,9 @@ export function Caret({
       viewBox="0 0 24 24"
       fill={fill}
       stroke={stroke}
-      strokeWidth="1"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+      stroke-width="1"
+      stroke-linecap="round"
+      stroke-linejoin="round"
       className={className}
     >
       <polygon points="8 19 20 12 8 5" transform={`rotate(${rotation} 12 12)`} />

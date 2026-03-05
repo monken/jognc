@@ -14,17 +14,24 @@ export function GrblProvider(props: { children: preact.ComponentChildren }) {
   const [connectionState, setConnectionState] = useState<WebSocketState>(WebSocketState.CONNECTING);
   const [grblState, setGrblState] = useState<GrblStatus>();
 
-  const mergedGrblState = useCallback((oldState: GrblStatus | undefined, newState: GrblStatus | undefined): GrblStatus | undefined => {
-    if (!oldState) return newState;
-    if (!newState) return oldState;
-    return { ...oldState, ...newState };
-  }, []);
+  const mergedGrblState = useCallback(
+    (oldState: GrblStatus | undefined, newState: GrblStatus | undefined): GrblStatus | undefined => {
+      if (!oldState) return newState;
+      if (!newState) return oldState;
+      return { ...oldState, ...newState };
+    },
+    [],
+  );
 
-  const ws = useMemo(() => new Connection({ 
-    url: DEV ? "http://fluidnc.local/" : "/", 
-    reportInterval: 80,
-    socketFactory: USE_MOCK ? (url) => new MockWebSocket(url) as unknown as WebSocket : undefined
-  }), []);
+  const ws = useMemo(
+    () =>
+      new Connection({
+        url: DEV ? "http://fluidnc.local/" : "/",
+        reportInterval: 80,
+        socketFactory: USE_MOCK ? (url) => new MockWebSocket(url) as unknown as WebSocket : undefined,
+      }),
+    [],
+  );
 
   useEffect(() => {
     const offState = ws.on<WebSocketState>("statechange", (msg) => setConnectionState(msg.value));

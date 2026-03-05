@@ -28,9 +28,9 @@ export function GenericBox({
   return (
     <button
       className={clsx(
-        "border-2 p-2 relative",
+        "border-2 p-2 relative rounded-xs",
         active && !disabled && "bg-amber-100 text-gray-300 border-black",
-        disabled && "text-gray-600 border-gray-600",
+        disabled && "text-gray-600 border-gray-600 bg-gray-800",
         !active && !disabled && [INTENT_CLASSES[intent], "text-white border-white"],
 
         className,
@@ -145,21 +145,24 @@ export function ToggleButton({
     <GenericBox
       active={active}
       disabled={disabled}
-      className={clsx("flex flex-col aspect-square", active && !disabled && "outline-3 outline-amber-100 border-amber-100! bg-gray-800")}
+      className={clsx(
+        "flex flex-col aspect-square",
+        active && !disabled && "outline-3 outline-amber-100 border-amber-100! bg-gray-800",
+      )}
       onPointerDown={() => onChange?.(!active)}
       aria-pressed={active}
     >
       <svg viewBox="0 0 24 4" className={clsx("w-full", active ? "stroke-amber-100" : "stroke-gray-600")}>
-        <line x1="2" y1="2" x2="22" y2="2" strokeWidth="2" strokeLinecap="round" />
+        <line x1="2" y1="2" x2="22" y2="2" stroke-width="2" stroke-linecap="round" />
       </svg>
       <div
         className={clsx(
-          "flex-1 flex items-center justify-center text-2xl font-semibold font-mono",
-          active && !disabled ? "fill-amber-100" : disabled ? "fill-gray-600" : "fill-white",
+          "flex-1 flex items-center justify-center text-2xl font-mono",
+          active && !disabled ? "fill-amber-100 font-semibold" : disabled ? "fill-gray-600" : "fill-white",
         )}
       >
         <svg viewBox="0 0 24 12" className="w-full">
-          <text x={12} y={6.5} textAnchor="middle" alignmentBaseline="middle" fontSize={8}>
+          <text x={12} y={6.5} text-anchor="middle" alignment-baseline="middle" font-size={7}>
             {label}
           </text>
         </svg>
@@ -174,16 +177,31 @@ interface Cycle {
   value?: Record<string, number>;
 }
 
-export function CycleButton({ cycles, disabled }: { cycles: Cycle[]; disabled?: boolean }) {
+export function CycleButton({
+  cycles,
+  disabled,
+  value,
+  onChange,
+}: {
+  cycles: Cycle[];
+  disabled?: boolean;
+  value?: number;
+  onChange?: (index: number) => void;
+}) {
   const [index, setIndex] = useState(0);
-  const current = cycles[index];
+  const currentIndex = value ?? index;
+  const current = cycles[currentIndex];
 
   if (!cycles || cycles.length === 0) return null;
 
   return (
     <GenericBox
       className="aspect-square flex flex-col"
-      onPointerDown={() => setIndex((i) => (i + 1) % cycles.length)}
+      onPointerDown={() => {
+        const nextIndex = (currentIndex + 1) % cycles.length;
+        if (value === undefined) setIndex(nextIndex);
+        onChange?.(nextIndex);
+      }}
       label={current.label}
       disabled={disabled}
     >
@@ -203,14 +221,14 @@ export function CycleButton({ cycles, disabled }: { cycles: Cycle[]; disabled?: 
           const lineX1 = isFirst ? startX + r : startX;
           const lineX2 = isLast ? endX - r : endX;
 
-          const active = i === index;
+          const active = i === currentIndex;
 
           return (
             <g
               key={i}
               className={active && !disabled ? "stroke-amber-100 fill-amber-100" : "stroke-gray-600 fill-gray-600"}
             >
-              <line x1={lineX1} y1="2" x2={lineX2} y2="2" strokeWidth="2" />
+              <line x1={lineX1} y1="2" x2={lineX2} y2="2" stroke-width="2" />
               {isFirst && <circle cx={lineX1} cy="2" r={r} className="stroke-none" />}
               {isLast && <circle cx={lineX2} cy="2" r={r} className="stroke-none" />}
             </g>
@@ -221,7 +239,7 @@ export function CycleButton({ cycles, disabled }: { cycles: Cycle[]; disabled?: 
       <div className="flex-1 flex items-center justify-center w-full fill-white">
         {typeof current.icon === "string" ? (
           <svg viewBox="0 0 24 12" className={clsx("w-full font-mono", disabled ? "fill-gray-600" : "fill-white")}>
-            <text x={12} y={4} textAnchor="middle" alignmentBaseline="middle" fontSize={8}>
+            <text x={12} y={4} text-anchor="middle" alignment-baseline="middle" font-size={7}>
               {current.icon}
             </text>
           </svg>

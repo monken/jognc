@@ -32,13 +32,13 @@ export class Connection extends EventTarget {
   ws?: Promise<void>;
   _ws?: WebSocket;
   private createSocket: (url: string | URL) => WebSocket;
-  private queue: { message: string; resolve: () => void; reject: (reason?: any) => void }[] = [];
+  private queue: { message: string; resolve: () => void; reject: (reason?: unknown) => void }[] = [];
   url: string | URL;
   currentId?: string;
   state: WebSocketState = WebSocketState.CLOSED;
   reportInterval?: number;
   lastMessageTimestamp = 0;
-  waitForResponse?: { resolve: () => void; reject: (reason?: any) => void; message: string };
+  waitForResponse?: { resolve: () => void; reject: (reason?: unknown) => void; message: string };
   private checkInterval?: ReturnType<typeof setInterval>;
 
   constructor({ url, reconnect = true, reportInterval = 200, socketFactory }: ConnectionOptions) {

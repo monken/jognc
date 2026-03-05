@@ -6,6 +6,8 @@ export class MockWebSocket extends EventTarget {
   private mpos = { x: 0, y: 0, z: 0 };
   private target = { x: 0, y: 0, z: 0 };
   private velocity = { x: 0, y: 0, z: 0 }; // Current velocity
+  private feedRate = 1000; // in mm/min
+  private ACCEL = 100; // mm/s^2
   private lastUpdate = 0;
   private state = "Idle";
   private lastReport = "";
@@ -26,7 +28,10 @@ export class MockWebSocket extends EventTarget {
 
     // Simulate async processing
     setTimeout(() => {
-      if (data.startsWith("$Report/Interval=")) {
+      if (data.includes("\x85")) {
+        this.target = { ...this.mpos };
+        this.simulateMessage("ok");
+      } else if (data.startsWith("$Report/Interval=")) {
         // Configuration command, just ack
         this.simulateMessage("ok");
       } else if (data.startsWith("$J=")) {
@@ -49,7 +54,7 @@ export class MockWebSocket extends EventTarget {
     // or handles standard remote control jogging patterns.
 
     // Reset state to Run
-    this.state = "Run";
+    this.state = "Jog";
 
     const params = cmd.split(" ");
 
@@ -61,6 +66,7 @@ export class MockWebSocket extends EventTarget {
       if (key === "X") this.target.x += val;
       if (key === "Y") this.target.y += val;
       if (key === "Z") this.target.z += val;
+      if (key === "F") this.feedRate = val;
     });
   }
 
@@ -84,8 +90,8 @@ export class MockWebSocket extends EventTarget {
         [
           this.state,
           `MPos:${this.mpos.x.toFixed(3)},${this.mpos.y.toFixed(3)},${this.mpos.z.toFixed(3)}`,
-          `FS:${Math.max(...Object.values(this.velocity)).toFixed(0)},0`,
-        ].join('|') +
+          `FS:${(Math.max(...Object.values(this.velocity)) * 60).toFixed(0)},0`,
+        ].join("|") +
         ">";
 
       // Only send if changed (FluidNC optimization simulation)
@@ -101,45 +107,46 @@ export class MockWebSocket extends EventTarget {
     const dt = (now - this.lastUpdate) / 1000; // Delta time in seconds
     this.lastUpdate = now;
 
-    if (this.state !== "Run") return;
+    if (this.state !== "Jog") return;
 
-    const ACCEL = 250; // mm/s^2
-    const MAX_SPEED = 2000; // mm/min (cap for simulation)
+    const MAX_SPEED = this.feedRate; // in mm/min
     const MAX_SPEED_SEC = MAX_SPEED / 60; // mm/s
 
     let moving = false;
 
     (["x", "y", "z"] as const).forEach((axis) => {
-      const diff = this.target[axis] - this.mpos[axis];
-      if (Math.abs(diff) < 0.01) {
-        this.mpos[axis] = this.target[axis];
-        this.velocity[axis] = 0;
-        return;
+      let v = this.velocity[axis];
+      const p = this.mpos[axis];
+      const t = this.target[axis];
+      const dist = t - p;
+
+      const maxChange = this.ACCEL * dt;
+
+      const distToStop = ((v + maxChange) * (v + maxChange)) / (2 * this.ACCEL);
+
+      let targetV = dist > 0 ? MAX_SPEED_SEC : 0;
+
+      if (distToStop > Math.abs(dist) && dist > 0) {
+        targetV = v - ((v * v) / dist / 2) * dt;
       }
 
-      moving = true;
+      const diffV = targetV - v;
 
-      // Simple bang-bang acceleration toward target
-      const direction = Math.sign(diff);
-
-      // v = u + at
-      let newVel = this.velocity[axis] + direction * ACCEL * dt;
-
-      // Cap speed
-      if (Math.abs(newVel) > MAX_SPEED_SEC) newVel = direction * MAX_SPEED_SEC;
-
-      // Apply velocity to position
-      // s = vt
-      let newPos = this.mpos[axis] + newVel * dt;
-
-      // Check overshoot
-      if ((direction > 0 && newPos > this.target[axis]) || (direction < 0 && newPos < this.target[axis])) {
-        newPos = this.target[axis];
-        newVel = 0;
+      if (Math.abs(diffV) <= maxChange) {
+        // Can reach target velocity in this step
+        v = targetV;
+      } else {
+        // Cap change to acceleration limit
+        v += Math.sign(diffV) * maxChange;
       }
 
-      this.velocity[axis] = newVel;
+      // 4. Update Position
+      const newPos = p + v * dt;
+
       this.mpos[axis] = newPos;
+      this.velocity[axis] = v;
+      if (diffV < 0 && dist < 0) this.target[axis] = newPos; // Overshot target
+      moving = true;
     });
 
     if (!moving) {
