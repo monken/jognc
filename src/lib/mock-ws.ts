@@ -7,9 +7,8 @@ export class MockWebSocket extends EventTarget {
   private target = { x: 0, y: 0, z: 0 };
   private velocity = { x: 0, y: 0, z: 0 }; // Current velocity
   private feedRate = 1000; // in mm/min
-  private ACCEL = 100; // mm/s^2
   private lastUpdate = 0;
-  private state = "Idle";
+  private state = "Alarm";
   private lastReport = "";
 
   constructor(url: string | URL) {
@@ -38,8 +37,12 @@ export class MockWebSocket extends EventTarget {
         // Parse Jog Command: $J=G91 X10 F1000
         this.handleJog(data);
         this.simulateMessage("ok");
-      } else if (data === "") {
+      } else if (data.startsWith("$X")) {
+        this.state = "Idle";
+        this.simulateMessage("ok");
+      } else if (data.trim() === "") {
         // keep-alive ping
+        this.simulateMessage("ok");
       } else {
         // Command execution
         this.simulateMessage("ok");
@@ -131,7 +134,7 @@ export class MockWebSocket extends EventTarget {
       const dp = Math.sign(dist) * step;
       this.mpos[axis] = p + dp;
       this.velocity[axis] = dp / dt;
-      
+
       moving = true;
     });
 
