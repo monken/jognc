@@ -3,7 +3,7 @@ export const WebSocketState = {
   OPEN: "OPEN",
   CLOSING: "CLOSING",
   CLOSED: "CLOSED",
-  RECONNECTING: "RECONNECTING",
+  RECONNECTING: "CONNECTING",
 } as const;
 
 export type WebSocketState = (typeof WebSocketState)[keyof typeof WebSocketState];

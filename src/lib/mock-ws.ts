@@ -90,7 +90,7 @@ export class MockWebSocket extends EventTarget {
         [
           this.state,
           `MPos:${this.mpos.x.toFixed(3)},${this.mpos.y.toFixed(3)},${this.mpos.z.toFixed(3)}`,
-          `FS:${(Math.max(...Object.values(this.velocity)) * 60).toFixed(0)},0`,
+          `FS:${(Math.max(...Object.values(this.velocity).map(Math.abs)) * 60).toFixed(0)},0`,
         ].join("|") +
         ">";
 
@@ -107,7 +107,7 @@ export class MockWebSocket extends EventTarget {
     const dt = (now - this.lastUpdate) / 1000; // Delta time in seconds
     this.lastUpdate = now;
 
-    if (this.state !== "Jog") return;
+    if (this.state !== "Jog" || dt <= 0) return;
 
     const MAX_SPEED = this.feedRate; // in mm/min
     const MAX_SPEED_SEC = MAX_SPEED / 60; // mm/s
@@ -115,37 +115,23 @@ export class MockWebSocket extends EventTarget {
     let moving = false;
 
     (["x", "y", "z"] as const).forEach((axis) => {
-      let v = this.velocity[axis];
       const p = this.mpos[axis];
       const t = this.target[axis];
       const dist = t - p;
 
-      const maxChange = this.ACCEL * dt;
-
-      const distToStop = ((v + maxChange) * (v + maxChange)) / (2 * this.ACCEL);
-
-      let targetV = dist > 0 ? MAX_SPEED_SEC : 0;
-
-      if (distToStop > Math.abs(dist) && dist > 0) {
-        targetV = v - ((v * v) / dist / 2) * dt;
+      if (Math.abs(dist) < 0.001) {
+        this.velocity[axis] = 0;
+        this.mpos[axis] = t;
+        return;
       }
 
-      const diffV = targetV - v;
+      let step = MAX_SPEED_SEC * dt;
+      if (step > Math.abs(dist)) step = Math.abs(dist);
 
-      if (Math.abs(diffV) <= maxChange) {
-        // Can reach target velocity in this step
-        v = targetV;
-      } else {
-        // Cap change to acceleration limit
-        v += Math.sign(diffV) * maxChange;
-      }
-
-      // 4. Update Position
-      const newPos = p + v * dt;
-
-      this.mpos[axis] = newPos;
-      this.velocity[axis] = v;
-      if (diffV < 0 && dist < 0) this.target[axis] = newPos; // Overshot target
+      const dp = Math.sign(dist) * step;
+      this.mpos[axis] = p + dp;
+      this.velocity[axis] = dp / dt;
+      
       moving = true;
     });
 
