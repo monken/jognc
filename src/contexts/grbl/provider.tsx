@@ -26,7 +26,7 @@ export function GrblProvider(props: { children: preact.ComponentChildren }) {
   const ws = useMemo(
     () =>
       new Connection({
-        url: DEV ? "http://fluidnc.local/" : "/",
+        url: DEV ? "/" : "http://fluidnc.local/",
         reportInterval: 80,
         socketFactory: USE_MOCK ? (url) => new MockWebSocket(url) as unknown as WebSocket : undefined,
       }),
