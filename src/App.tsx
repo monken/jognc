@@ -8,6 +8,7 @@ import { WebSocketState } from "./lib/ws";
 import { useSwipeable } from "./hooks/useSwipeable";
 import { Controls } from "./components/Controls";
 import { Settings } from "./components/Settings";
+import { ReloadPrompt } from "./components/ReloadPrompt";
 
 const STATE_INTENT_MAP: Record<string, Intent> = {
   [GrblState.ALARM]: "danger",
@@ -38,6 +39,7 @@ function App() {
 
   return (
     <>
+      <ReloadPrompt />
       <div 
         ref={scrollRef}
         {...scrollHandlers}
