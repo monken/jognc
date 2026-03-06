@@ -1,41 +1,15 @@
 import "./App.css";
 
-import { useGrbl } from "./contexts/grbl";
-import { GrblState } from "./lib/grbl";
-import { GenericBox, type Intent } from "./components/icons/Button";
 import clsx from "clsx";
-import { WebSocketState } from "./lib/ws";
 import { useSwipeable } from "./hooks/useSwipeable";
 import { Controls } from "./components/Controls";
 import { Settings } from "./components/Settings";
 import { ReloadPrompt } from "./components/ReloadPrompt";
 
-const STATE_INTENT_MAP: Record<string, Intent> = {
-  [GrblState.ALARM]: "danger",
-  [GrblState.HOLD_0]: "warning",
-  [GrblState.JOG]: "primary",
-  [GrblState.RUN]: "primary",
-};
-
-function StatusBox({ dragHandlers }: { dragHandlers: ReturnType<typeof useSwipeable>["dragHandlers"] }) {
-  const { state, connectionState } = useGrbl();
-  
-  return (
-    <div {...dragHandlers} className="shrink-0 w-full col-span-3 select-none">
-      <GenericBox
-        intent={state ? STATE_INTENT_MAP[state] || "secondary" : "secondary"}
-        className="w-full font-mono text-2xl font-bold uppercase pointer-events-none"
-      >
-        {connectionState === WebSocketState.OPEN ? state : connectionState}
-      </GenericBox>
-    </div>
-  );
-}
-
 function App() {
   const { scrollRef, activePage, scrollHandlers, dragHandlers } = useSwipeable(2);
 
-  const pages = [<Controls key="controls" />, <Settings key="settings" />];
+  const pages = [<Controls key="controls" dragHandlers={dragHandlers} />, <Settings key="settings" dragHandlers={dragHandlers} />];
 
   return (
     <>
@@ -49,7 +23,6 @@ function App() {
       >
         {pages.map((page, idx) => (
           <div key={idx} className="w-full shrink-0 snap-center p-2 flex flex-col space-y-4">
-            <StatusBox dragHandlers={dragHandlers} />
             {page}
           </div>
         ))}
