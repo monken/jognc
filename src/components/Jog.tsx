@@ -60,7 +60,12 @@ export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd:
 
   return (
     <div className="bg-black grid grid-cols-3 gap-4 select-none touch-none">
-      <CycleButton disabled={state === undefined} value={fsIdx} cycles={FEED_SPEED_OPTIONS} onChange={(v) => updateJogSettings("fsIdx", v)} />
+      <CycleButton
+        disabled={state === undefined}
+        value={fsIdx}
+        cycles={FEED_SPEED_OPTIONS}
+        onChange={(v) => updateJogSettings("fsIdx", v)}
+      />
       <CaretButton
         label="Z+"
         rotation={270}
@@ -82,7 +87,12 @@ export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd:
         onPress={() => updateJogging(0, -1)}
         onRelease={() => updateJogging(0, 1)}
       />
-      <ToggleButton label="INC" disabled={state === undefined} active={incremental} onChange={(v) => updateJogSettings("incremental", v)} />
+      <ToggleButton
+        label="INC"
+        disabled={state === undefined}
+        active={incremental}
+        onChange={(v) => updateJogSettings("incremental", v)}
+      />
       <CaretButton
         label="X+"
         rotation={0}
