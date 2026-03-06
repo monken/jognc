@@ -1,7 +1,8 @@
 import { Square } from "./icons";
 import { CaretButton, CycleButton, IconButton, ToggleButton } from "./icons/Button";
 import { GrblState } from "../lib/grbl";
-import { useCallback, useRef, useState } from "preact/hooks";
+import { useCallback, useRef } from "preact/hooks";
+import { jogSettings, updateJogSettings } from "../signals/jog";
 
 const AXES = ["X", "Y", "Z", "A", "B", "C"];
 
@@ -30,11 +31,9 @@ const FEED_SPEED_OPTIONS: { label: string; icon: string; value: Record<string, n
 
 export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd: string) => Promise<void> }) {
   const joggingRef = useRef([0, 0, 0, 0, 0, 0]);
-  const [incremental, setIncremental] = useState(false);
-  const [fsIdx, setFs] = useState(0);
+  const incremental = jogSettings.value.incremental;
+  const fsIdx = jogSettings.value.fsIdx;
   const fs = FEED_SPEED_OPTIONS[fsIdx].value;
-
-  console.log({ fs });
 
   const stop = useCallback(() => {
     joggingRef.current = [0, 0, 0, 0, 0, 0];
@@ -61,7 +60,7 @@ export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd:
 
   return (
     <div className="bg-black grid grid-cols-3 gap-4 select-none touch-none">
-      <CycleButton disabled={state === undefined} value={fsIdx} cycles={FEED_SPEED_OPTIONS} onChange={setFs} />
+      <CycleButton disabled={state === undefined} value={fsIdx} cycles={FEED_SPEED_OPTIONS} onChange={(v) => updateJogSettings("fsIdx", v)} />
       <CaretButton
         label="Z+"
         rotation={270}
@@ -83,7 +82,7 @@ export function Jog({ state, send }: { state: GrblState | undefined; send: (cmd:
         onPress={() => updateJogging(0, -1)}
         onRelease={() => updateJogging(0, 1)}
       />
-      <ToggleButton label="INC" disabled={state === undefined} active={incremental} onChange={setIncremental} />
+      <ToggleButton label="INC" disabled={state === undefined} active={incremental} onChange={(v) => updateJogSettings("incremental", v)} />
       <CaretButton
         label="X+"
         rotation={0}
