@@ -19,6 +19,7 @@ export function useSwipeable(pageCount: number) {
   };
 
   const handlePointerDown = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
     if (!scrollRef.current) return;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     setIsDragging(true);
@@ -29,6 +30,7 @@ export function useSwipeable(pageCount: number) {
   };
 
   const handlePointerMove = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
     if (!isDragging || !scrollRef.current) return;
     e.preventDefault();
     const x = e.pageX - scrollRef.current.offsetLeft;
@@ -38,6 +40,7 @@ export function useSwipeable(pageCount: number) {
   };
 
   const handlePointerUp = (e: PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
     if (!isDragging || !scrollRef.current) return;
     setIsDragging(false);
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);

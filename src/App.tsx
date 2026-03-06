@@ -20,7 +20,7 @@ function StatusBox({ dragHandlers }: { dragHandlers: ReturnType<typeof useSwipea
   const { state, connectionState } = useGrbl();
   
   return (
-    <div {...dragHandlers} className="shrink-0 w-full col-span-3 touch-none select-none">
+    <div {...dragHandlers} className="shrink-0 w-full col-span-3 select-none">
       <GenericBox
         intent={state ? STATE_INTENT_MAP[state] || "secondary" : "secondary"}
         className="w-full font-mono text-2xl font-bold uppercase pointer-events-none"
